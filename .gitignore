@@ -3,5 +3,5 @@
 *.pyc
 __pycache__/
 venv
+singapore_addresses.db
 settings.env
-/singapore_addresses.db
