@@ -23,7 +23,7 @@ start_time = time.time()
 char_count = 0
 counter = 0
 
-for j in range(1, 1001):
+for j in range(1001, 1501):
   for i in range(1, 100):
     # wait_some_seconds()   # Throttling effect
     postal_code = f"{i:02d}{j:04d}"
@@ -70,8 +70,8 @@ for j in range(1, 1001):
           else:
             newLocation.postal_code_index = postalCode
           session.commit()
-  #  else:
-  #    print(f"{params['searchVal']} | {r['found']:2d} |    |")
+    # else:
+    #   print(f"{params['searchVal']} | {r['found']:2d} |    |")
 # display(Markdown('---'))
 end_time = time.time()
 hh = int(end_time-start_time) // 3600
