@@ -2,6 +2,7 @@
 *.pot
 *.pyc
 __pycache__/
+OneMap/
 venv
 singapore_addresses.db
 settings.env

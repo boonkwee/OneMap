@@ -23,7 +23,7 @@ start_time = time.time()
 char_count = 0
 counter = 0
 
-for j in range(701, 1001):
+for j in range(1, 1001):
   for i in range(1, 100):
     # wait_some_seconds()   # Throttling effect
     postal_code = f"{i:02d}{j:04d}"
