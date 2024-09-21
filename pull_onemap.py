@@ -40,11 +40,12 @@ for j in range(1, 1001):
         # Create a session from the sessionmaker
         with session_pool() as session:
           # Query for the location where postal_code, page_number and name matches DB
-          record = session.query(Location).filter(
+          existing_records = session.query(Location).filter(
               Location.postal_code==postal_code,
               Location.page_number==index+1,
-              Location.name==row['SEARCHVAL']).one_or_none()
-          if record:
+              Location.name==row['SEARCHVAL']).all()
+          if existing_records:
+            record = existing_records[0]
             display_str = f"{params['searchVal']} | {r['found']:2d} | {r['totalNumPages']:2d} | {record.page_number} | [{record.latitude:1.14f}] | [{record.longitude:3.12f}] | {record.name}"
             continue
           else:
