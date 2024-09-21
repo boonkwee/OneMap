@@ -1,5 +1,5 @@
 # Postal Code Database
-This repo is a simple Python application that creates a sqlite3 db and pulls Singapore Postal code and the corresponding location name to the db.
+This repo is a simple Database Python application that creates a sqlite3 db and pulls Singapore Postal code and the corresponding location name to the db.
 
 ## database.py
 This is the file that defines the database connection. Modify this file to switch to a different type of database. I will include a connection to a working PostreSQL db in the future development.
