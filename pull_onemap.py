@@ -6,7 +6,6 @@ from database import session_pool
 from models import Location
 from models import PostalCode
 # from IPython.display import Markdown, display
-
 headers = {"Authorization": ONEMAP_KEY}
 
 url = "https://www.onemap.gov.sg/api/common/elastic/search"
@@ -23,7 +22,7 @@ start_time = time.time()
 char_count = 0
 counter = 0
 
-for j in range(1501, 1701):
+for j in range(1,2001):
   for i in range(1, 100):
     # wait_some_seconds()   # Throttling effect
     postal_code = f"{i:02d}{j:04d}"
