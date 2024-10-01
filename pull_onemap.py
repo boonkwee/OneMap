@@ -25,7 +25,7 @@ if __name__=='__main__':
   char_count = 0
   counter = 0
 
-  for j in range(5147,7001):
+  for j in range(1, 1001):
     for i in range(1, 100):
       # wait_some_seconds()   # Throttling effect
       postal_code = f"{i:02d}{j:04d}"
@@ -48,21 +48,24 @@ if __name__=='__main__':
                 Location.name==row['SEARCHVAL']).all()
             if existing_records:
               record = existing_records[0]
-              display_str = f"{params['searchVal']} | {r['found']:2d} | {r['totalNumPages']:2d} | {record.page_number:2d} | [{record.latitude:1.12f}] | [{record.longitude:3.10f}] | {record.name}"
+              display_str = f"{params['searchVal']} | {record.page_number:2d} | {record.total_pages:2d} | {record.record_index:2d} | {record.total_records:2d} | [{record.latitude:1.12f}] | [{record.longitude:3.10f}] | {record.name}"
               print(display_str)
               char_count += len(display_str)
               continue
             else:
-              display_str = f"{params['searchVal']} | {r['found']:2d} | {r['totalNumPages']:2d} | {index+1:2d} | {row['LATITUDE']:16s} | {row['LONGITUDE']:16s} | {row['SEARCHVAL']}"
+              record_index = (r['pageNum']-1)*10 + index+1
+              display_str = f"{params['searchVal']} | {r['pageNum']:2d} | {r['totalNumPages']:2d} | {record_index:2d} | {r['found']:2d} | {row['LATITUDE']:16s} | {row['LONGITUDE']:16s} | {row['SEARCHVAL']}"
               print(display_str)
               char_count += len(display_str)
 
             counter += 1
             newLocation = Location(name=row['SEARCHVAL'],
-                                  latitude=r['results'][0]['LATITUDE'],
-                                  longitude=r['results'][0]['LONGITUDE'],
-                                  total_pages=r['found'],
-                                  page_number=index+1)
+                                  latitude=r['results'][index]['LATITUDE'],
+                                  longitude=r['results'][index]['LONGITUDE'],
+                                  total_pages=r['totalNumPages'],
+                                  page_number=r['pageNum'],
+                                  total_records=r['found'],
+                                  record_index=record_index)
             session.add(newLocation)
 
             # check if postal code already exist in PostalCode, if not exist insert new Postal code
