@@ -1,0 +1,52 @@
+import requests
+import json
+
+class Api:
+  def __init__(self, url:str='', method:str='', param:dict={}):
+    self.url = url
+    self.method = 'GET' if method == '' else method
+    self.params = param
+
+  def call(self):
+    response = requests.request(self.method, self.url, params=self.params)
+    return response
+
+  def set(self, keyword:str='', value:str=''):
+    if keyword in self.params:
+      self.params[keyword] = value
+
+  def sets(self, **kwargs):
+    for k, v in kwargs.items():
+      if k in self.params:
+        self.params[k] = v
+
+  def get(self, keyword:str=''):
+    value = self.params.get(keyword, None)
+    return value
+
+
+if __name__=='__main__':
+  # url = 'https://www.mit.edu/~ecprice/wordlist.10000'
+  # a = Api(url=url)
+  # r = a.call()
+  # print(r.replace('\\n', '\n'))
+
+  url = "https://www.onemap.gov.sg/api/common/elastic/search"
+  params = {
+      'searchVal'     : "000001",
+      'returnGeom'    : "Y",
+      'getAddrDetails': "N",
+      'pageNum'       : "1"
+  }
+  a = Api(url=url, param=params)
+  print("'hello' keyword => ", print(a.get('hello')))
+  print("'searchVal' keyword => ",a.get('searchVal'))
+  a.set('searchVal', '644987')
+  print("'searchVal' keyword => ",a.get('searchVal'))
+  a.sets(**{'searchVal': '574369', 'pageNum': '2'})
+  print("'searchVal' keyword => ",a.get('searchVal'))
+  print("'pageNum' keyword => ",a.get('pageNum'))
+  r = a.call()
+  obj = json.loads(r)
+  print(obj['found'], type(obj['found']))
+  # print(obj)
