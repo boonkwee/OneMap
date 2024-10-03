@@ -1,6 +1,7 @@
 *.log
 *.pot
 *.pyc
+*.db-journal
 __pycache__/
 OneMap/
 venv

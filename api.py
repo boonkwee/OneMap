@@ -39,7 +39,7 @@ if __name__=='__main__':
       'pageNum'       : "1"
   }
   a = Api(url=url, param=params)
-  print("'hello' keyword => ", print(a.get('hello')))
+  print("'hello' keyword => ", a.get('hello'))
   print("'searchVal' keyword => ",a.get('searchVal'))
   a.set('searchVal', '644987')
   print("'searchVal' keyword => ",a.get('searchVal'))
@@ -47,6 +47,6 @@ if __name__=='__main__':
   print("'searchVal' keyword => ",a.get('searchVal'))
   print("'pageNum' keyword => ",a.get('pageNum'))
   r = a.call()
-  obj = json.loads(r)
+  obj = json.loads(r.text)
   print(obj['found'], type(obj['found']))
-  # print(obj)
+  print(r.text)
