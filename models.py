@@ -32,7 +32,7 @@ class OneMapResponse(TimestampMixin, Base):
   total_pages =       Column(Integer)
   page_number =       Column(Integer)
   total_records =     Column(Integer)
-  record_index =      Column(Integer)
+  # record_index =      Column(Integer)
   response =          Column(TEXT)
   postal_code =       Column(String, ForeignKey('postal_code.postal_code'),
                              index=True, unique=False)

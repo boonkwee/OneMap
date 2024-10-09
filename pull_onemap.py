@@ -36,7 +36,8 @@ def main():
   print(f"XX{start:04d} to XX{end-1:04d}")
 
   p = PipeLine()
-  api = Api(url=url, method='GET', param=params, header=headers)
+  # api = Api(url=url, method='GET', param=params, header=headers)
+  api = Api(url=url, method='GET', param=params)
   # insert new locations record
   start_time = time.time()
   counter = 0
@@ -70,7 +71,8 @@ def main():
         print(f"{str(e)}: [{response.text}]")
         continue
       r = json.loads(response.text)
-      if r['found']:
+      record_count = r['found']
+      if record_count:
         current_page = r['pageNum']
         total_pages = r['totalNumPages']
         for index, row in enumerate(r['results']):
@@ -94,20 +96,30 @@ def main():
                     f" {row['SEARCHVAL']}")
 
             counter += 1
-            newLocation = Location(name=row['SEARCHVAL'],
-                                   postal_code=postal_code,
-                                  latitude=r['results'][index]['LATITUDE'],
-                                  longitude=r['results'][index]['LONGITUDE'],
-                                  )
-            newResponse = OneMapResponse(total_pages=r['totalNumPages'],
-                                         page_number=r['pageNum'],
-                                         total_records=r['found'],
-                                         postal_code=postal_code,
-                                         record_index=record_index,
-                                         response=response.text
-            )
-            session.add(newResponse)
+            newLocation = Location(
+              name=row['SEARCHVAL'],
+              postal_code=postal_code,
+              latitude=r['results'][index]['LATITUDE'],
+              longitude=r['results'][index]['LONGITUDE'],
+              )
             session.add(newLocation)
+
+            oneMapEntry = session.query(OneMapResponse).filter(
+              OneMapResponse.postal_code==postal_code,
+              OneMapResponse.total_pages==total_pages,
+              OneMapResponse.total_records==record_count,
+              OneMapResponse.response==response.text
+              ).one_or_none()
+
+            if oneMapEntry is None:
+              newResponse = OneMapResponse(
+                total_pages=total_pages,
+                page_number=current_page,
+                total_records=record_count,
+                postal_code=postal_code,
+                response=response.text
+              )
+              session.add(newResponse)
 
             # check if postal code already exist in PostalCode, if not exist insert new Postal code
             postalCode = session.query(PostalCode).filter(PostalCode.postal_code==postal_code).one_or_none()
@@ -115,6 +127,7 @@ def main():
               newPostalCode = PostalCode(postal_code=postal_code)
               session.add(newPostalCode)
               newLocation.postal_code_index = newPostalCode
+              newResponse.postal_code_index = newPostalCode
             else:
               newLocation.postal_code_index = postalCode
             session.commit()

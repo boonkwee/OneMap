@@ -6,9 +6,10 @@ class Api:
     self.url = url
     self.method = 'GET' if method == '' else method
     self.params = param
+    self.header = header
 
   def call(self):
-    response = requests.request(self.method, self.url, params=self.params)
+    response = requests.request(self.method, self.url, params=self.params, headers=self.header)
     return response
 
   def set(self, keyword:str='', value:str=''):
