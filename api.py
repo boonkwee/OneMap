@@ -2,7 +2,7 @@ import requests
 import json
 
 class Api:
-  def __init__(self, url:str='', method:str='', param:dict={}):
+  def __init__(self, url:str='', method:str='', param:dict={}, header:dict={}):
     self.url = url
     self.method = 'GET' if method == '' else method
     self.params = param

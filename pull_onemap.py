@@ -5,6 +5,7 @@ from settings import ONEMAP_KEY
 from database import session_pool
 from models import Location
 from models import PostalCode
+from models import OneMapResponse
 from api import Api
 from pipeline import PipeLine
 # from IPython.display import Markdown, display
@@ -22,17 +23,33 @@ params = {
 
 if __name__=='__main__':
   p = PipeLine()
-  api = Api(url=url, method='GET', param=params)
+  api = Api(url=url, method='GET', param=params, header=headers)
   # insert new locations record
   start_time = time.time()
   counter = 0
+  max_failure = 1
+  f_counter = 0
 
-  for j in range(1, 1001):
+  for j in range(207, 1001):
+    if f_counter == max_failure:
+      break
     for i in range(1, 100):
       # wait_some_seconds()   # Throttling effect
       postal_code = f"{i:02d}{j:04d}"
       api.set('searchVal', postal_code)
-      response = api.call()
+      try:
+        response = api.call()
+      except requests.exceptions.ConnectionError:
+        f_counter += 1
+        if f_counter == max_failure:
+          print(f"Failed at {postal_code}")
+          break
+        else:
+          print(f"{postal_code} |"
+                f" {16*'-'} |"
+                f" {16*'-'} |"
+                f" {'---'}")
+          continue
       try:
         r = json.loads(response.text)
       except json.JSONDecodeError as e:
@@ -49,22 +66,44 @@ if __name__=='__main__':
             # Query for the location where postal_code, page_number and name matches DB
             record = session.query(Location).filter(
                 Location.postal_code==postal_code,
-                Location.record_index==record_index,
                 Location.name==row['SEARCHVAL']).one_or_none()
             if record:
-              print(f"{params['searchVal']} | {record.page_number:2d} | {record.total_pages:2d} | {record.record_index:2d} | {record.total_records:2d} | [{record.latitude:1.12f}] | [{record.longitude:3.10f}] | {record.name}")
+              print(f"{postal_code} |"
+                    # f" {record.page_number:2d} |"
+                    # f" {record.total_pages:2d} |"
+                    # f" {record.record_index:2d} |"
+                    # f" {record.total_records:2d} |"
+                    f" [{record.latitude:1.12f}] |"
+                    f" [{record.longitude:3.10f}] |"
+                    f" {record.name}")
               continue
             else:
-              print(f"{params['searchVal']} | {current_page:2d} | {total_pages:2d} | {record_index:2d} | {r['found']:2d} | {row['LATITUDE']:16s} | {row['LONGITUDE']:16s} | {row['SEARCHVAL']}")
+              print(f"{postal_code} |"
+                    # f" {current_page:2d} |"
+                    # f" {total_pages:2d} |"
+                    # f" {record_index:2d} |"
+                    # f" {r['found']:2d} |"
+                    f" {row['LATITUDE']:16s} |"
+                    f" {row['LONGITUDE']:16s} |"
+                    f" {row['SEARCHVAL']}")
 
             counter += 1
             newLocation = Location(name=row['SEARCHVAL'],
+                                   postal_code=postal_code,
                                   latitude=r['results'][index]['LATITUDE'],
                                   longitude=r['results'][index]['LONGITUDE'],
-                                  total_pages=r['totalNumPages'],
-                                  page_number=r['pageNum'],
-                                  total_records=r['found'],
-                                  record_index=record_index)
+                                  # total_pages=r['totalNumPages'],
+                                  # page_number=r['pageNum'],
+                                  # total_records=r['found'],
+                                  # record_index=record_index
+                                  )
+            newResponse = OneMapResponse(total_pages=r['totalNumPages'],
+                                         page_number=r['pageNum'],
+                                         total_records=r['found'],
+                                         record_index=record_index,
+                                         response=response.text
+            )
+            session.add(newResponse)
             session.add(newLocation)
 
             # check if postal code already exist in PostalCode, if not exist insert new Postal code

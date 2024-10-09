@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column, Integer, String, Boolean, DECIMAL, DateTime, ForeignKey, TIMESTAMP
+from sqlalchemy import Column, Integer, String, DECIMAL, DateTime, ForeignKey, TEXT
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import declared_attr
@@ -13,10 +13,6 @@ class Location(TimestampMixin, Base):
   __tablename__ = 'locations'
   id =                Column(Integer, primary_key=True, index=True)
   name =              Column(String, unique=False, index=True)
-  total_pages =       Column(Integer)
-  page_number =       Column(Integer)
-  total_records =     Column(Integer)
-  record_index =      Column(Integer)
   latitude =          Column(DECIMAL)
   longitude =         Column(DECIMAL)
   postal_code =       Column(String, ForeignKey('postal_code.postal_code'), nullable=True,
@@ -28,4 +24,17 @@ class PostalCode(TimestampMixin, Base):
   postal_code =       Column(String, primary_key=True, index=True)
   location_id =       Column(Integer, ForeignKey('locations.id'), nullable=True,
                              index=True)
+
+class OneMapResponse(TimestampMixin, Base):
+  __tablename__ =     'onemap_response'
+  id =                Column(Integer, primary_key=True, index=True)
+  total_pages =       Column(Integer)
+  page_number =       Column(Integer)
+  total_records =     Column(Integer)
+  record_index =      Column(Integer)
+  response =          Column(TEXT)
+  postal_code =       Column(String, ForeignKey('postal_code.postal_code'), nullable=True,
+                             index=True, unique=False)
+  postal_code_index = relationship('PostalCode', foreign_keys=[postal_code])
+
 
