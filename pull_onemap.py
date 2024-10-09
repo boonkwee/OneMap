@@ -2,6 +2,7 @@ import requests
 import json
 import time
 from settings import ONEMAP_KEY
+from settings import load_jsonfile, save_jsonfile, json_file
 from database import session_pool
 from models import Location
 from models import PostalCode
@@ -20,28 +21,41 @@ params = {
     'pageNum'       : "1"
 }
 
+last_counter = 0
+try:
+  start, end = load_jsonfile()
+except TypeError:
+  start = 1
+  end = 10000
+  raise
 
-if __name__=='__main__':
+def main():
+  global start
+  global end
+  global last_counter
+  print(f"XX{start:04d} to XX{end-1:04d}")
+
   p = PipeLine()
   api = Api(url=url, method='GET', param=params, header=headers)
   # insert new locations record
   start_time = time.time()
   counter = 0
   max_failure = 1
-  f_counter = 0
+  fail_counter = 0
 
-  for j in range(207, 1001):
-    if f_counter == max_failure:
+  for j in range(start, end):
+    if fail_counter == max_failure:
       break
     for i in range(1, 100):
+      last_counter = j
       # wait_some_seconds()   # Throttling effect
       postal_code = f"{i:02d}{j:04d}"
       api.set('searchVal', postal_code)
       try:
         response = api.call()
       except requests.exceptions.ConnectionError:
-        f_counter += 1
-        if f_counter == max_failure:
+        fail_counter += 1
+        if fail_counter == max_failure:
           print(f"Failed at {postal_code}")
           break
         else:
@@ -126,3 +140,15 @@ if __name__=='__main__':
 
   print(f"{counter} records added. ", end='')
   print(f"Duration: {hh:02d}:{mm:02d}:{ss:02d}. Rate: {record_insertion_speed:.3f} records per sec.")
+  if fail_counter == max_failure:
+    raise KeyboardInterrupt
+
+
+if __name__=='__main__':
+  try:
+    main()
+  except KeyboardInterrupt:
+    start = last_counter
+    save_jsonfile([start, end])
+    print(f"Start updated to {start}")
+    raise

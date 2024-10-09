@@ -1,13 +1,14 @@
 from database import Base
-from sqlalchemy import Column, Integer, String, DECIMAL, DateTime, ForeignKey, TEXT
+from sqlalchemy import Column, Integer, String, DECIMAL, DateTime, ForeignKey, TEXT, types
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.sql import func
+import pytz
 
 class TimestampMixin:
-  created_at =        Column(DateTime, default=func.now(), nullable=False)
-  updated_at =        Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+  created_at =        Column(DateTime, default=func.now(tz=pytz.timezone('Singapore')), nullable=False)
+  updated_at =        Column(DateTime, default=func.now(tz=pytz.timezone('Singapore')), onupdate=func.now(), nullable=False)
 
 class Location(TimestampMixin, Base):
   __tablename__ = 'locations'

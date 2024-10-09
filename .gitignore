@@ -2,6 +2,7 @@
 *.pot
 *.pyc
 *.db-journal
+*.json
 __pycache__/
 OneMap/
 venv
@@ -9,3 +10,5 @@ singapore_addresses.db
 settings.env
 PowerShell Terminal instructions.png
 locations.xlsx
+testing.py
+requirements_notebook.txt
