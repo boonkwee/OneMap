@@ -83,20 +83,12 @@ def main():
                 Location.name==row['SEARCHVAL']).one_or_none()
             if record:
               print(f"{postal_code} |"
-                    # f" {record.page_number:2d} |"
-                    # f" {record.total_pages:2d} |"
-                    # f" {record.record_index:2d} |"
-                    # f" {record.total_records:2d} |"
                     f" [{record.latitude:1.12f}] |"
                     f" [{record.longitude:3.10f}] |"
                     f" {record.name}")
               continue
             else:
               print(f"{postal_code} |"
-                    # f" {current_page:2d} |"
-                    # f" {total_pages:2d} |"
-                    # f" {record_index:2d} |"
-                    # f" {r['found']:2d} |"
                     f" {row['LATITUDE']:16s} |"
                     f" {row['LONGITUDE']:16s} |"
                     f" {row['SEARCHVAL']}")
@@ -106,14 +98,11 @@ def main():
                                    postal_code=postal_code,
                                   latitude=r['results'][index]['LATITUDE'],
                                   longitude=r['results'][index]['LONGITUDE'],
-                                  # total_pages=r['totalNumPages'],
-                                  # page_number=r['pageNum'],
-                                  # total_records=r['found'],
-                                  # record_index=record_index
                                   )
             newResponse = OneMapResponse(total_pages=r['totalNumPages'],
                                          page_number=r['pageNum'],
                                          total_records=r['found'],
+                                         postal_code=postal_code,
                                          record_index=record_index,
                                          response=response.text
             )

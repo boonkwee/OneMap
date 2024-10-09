@@ -34,7 +34,7 @@ class OneMapResponse(TimestampMixin, Base):
   total_records =     Column(Integer)
   record_index =      Column(Integer)
   response =          Column(TEXT)
-  postal_code =       Column(String, ForeignKey('postal_code.postal_code'), nullable=True,
+  postal_code =       Column(String, ForeignKey('postal_code.postal_code'),
                              index=True, unique=False)
   postal_code_index = relationship('PostalCode', foreign_keys=[postal_code])
 
