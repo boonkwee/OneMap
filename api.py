@@ -1,5 +1,7 @@
 import requests
 import json
+_DEBUG = False
+
 
 class Api:
   def __init__(self, url:str='', method:str='', param:dict={}, header:dict={}):
@@ -10,6 +12,8 @@ class Api:
 
   def call(self):
     response = requests.request(self.method, self.url, params=self.params, headers=self.header)
+    if _DEBUG:
+      print (f"Called {self.url[:10]}:{self.params['searchVal']} - ")
     return response
 
   def set(self, keyword:str='', value:str=''):
@@ -37,17 +41,18 @@ if __name__=='__main__':
       'searchVal'     : "000001",
       'returnGeom'    : "Y",
       'getAddrDetails': "N",
-      'pageNum'       : "1"
+      'pageNum'       : 1
   }
   a = Api(url=url, param=params)
   print("'hello' keyword => ", a.get('hello'))
   print("'searchVal' keyword => ",a.get('searchVal'))
   a.set('searchVal', '644987')
   print("'searchVal' keyword => ",a.get('searchVal'))
-  a.sets(**{'searchVal': '574369', 'pageNum': '2'})
+  a.sets(**{'searchVal': '574369', 'pageNum': 2})
   print("'searchVal' keyword => ",a.get('searchVal'))
-  print("'pageNum' keyword => ",a.get('pageNum'))
+  print("'pageNum' keyword => ",a.get('pageNum'), type(a.get('pageNum')))
   r = a.call()
   obj = json.loads(r.text)
   print(obj['found'], type(obj['found']))
   print(r.text)
+  print(r.url)

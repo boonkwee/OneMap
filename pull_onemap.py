@@ -8,8 +8,7 @@ from models import Location
 from models import PostalCode
 from models import OneMapResponse
 from api import Api
-from pipeline import PipeLine
-# from IPython.display import Markdown, display
+
 headers = {"Authorization": ONEMAP_KEY}
 
 url = "https://www.onemap.gov.sg/api/common/elastic/search"
@@ -18,7 +17,7 @@ params = {
     'searchVal'     : "000001",
     'returnGeom'    : "Y",
     'getAddrDetails': "N",
-    'pageNum'       : "1"
+    'pageNum'       : 1
 }
 
 last_counter = 0
@@ -35,7 +34,6 @@ def main():
   global last_counter
   print(f"XX{start:04d} to XX{end-1:04d}")
 
-  p = PipeLine()
   # api = Api(url=url, method='GET', param=params, header=headers)
   api = Api(url=url, method='GET', param=params)
   # insert new locations record
@@ -52,87 +50,103 @@ def main():
       # wait_some_seconds()   # Throttling effect
       postal_code = f"{i:02d}{j:04d}"
       api.set('searchVal', postal_code)
-      try:
-        response = api.call()
-      except requests.exceptions.ConnectionError:
-        fail_counter += 1
-        if fail_counter == max_failure:
-          print(f"Failed at {postal_code}")
-          break
-        else:
-          print(f"{postal_code} |"
-                f" {16*'-'} |"
-                f" {16*'-'} |"
-                f" {'---'}")
+      # refresh the current_page and total_pages from api
+      total_pages = api.get('pageNum')
+      current_page = api.get('pageNum')
+      while current_page <= total_pages:
+        api.set('pageNum', current_page)
+        try:
+          response = api.call()
+        except requests.exceptions.ConnectionError:
+          fail_counter += 1
+          if fail_counter == max_failure:
+            print(f"Failed at {postal_code}")
+            break
+          else:
+            print(f"{postal_code} |"
+                  f" {16*'-'} |"
+                  f" {16*'-'} |"
+                  f" {'---'}")
+            continue
+        try:
+          r = json.loads(response.text)
+        except json.JSONDecodeError as e:
+          print(f"{str(e)}: [{response.text}]")
           continue
-      try:
         r = json.loads(response.text)
-      except json.JSONDecodeError as e:
-        print(f"{str(e)}: [{response.text}]")
-        continue
-      r = json.loads(response.text)
-      record_count = r['found']
-      if record_count:
         current_page = r['pageNum']
-        total_pages = r['totalNumPages']
-        for index, row in enumerate(r['results']):
-          record_index = (r['pageNum']-1)*10 + index+1
-          # Create a session from the sessionmaker
-          with session_pool() as session:
-            # Query for the location where postal_code, page_number and name matches DB
-            record = session.query(Location).filter(
-                Location.postal_code==postal_code,
-                Location.name==row['SEARCHVAL']).one_or_none()
-            if record:
-              print(f"{postal_code} |"
-                    f" [{record.latitude:1.12f}] |"
-                    f" [{record.longitude:3.10f}] |"
-                    f" {record.name}")
-              continue
-            else:
+        total_pages =  r['totalNumPages']
+        record_count = r['found']
+        if not record_count:
+          if current_page <= total_pages:
+            current_page += 1
+          continue
+
+        else:
+          for index, row in enumerate(r['results']):
+            record_index = (r['pageNum']-1)*10 + index+1
+            # Create a session from the sessionmaker
+            with session_pool() as session:
+              # Query for the location where postal_code, page_number and name matches DB
+              record = session.query(Location).filter(
+                  Location.postal_code==postal_code,
+                  Location.name==row['SEARCHVAL']).one_or_none()
+              if record:
+                print(f"{postal_code} |"
+                      f" [{record.latitude:1.12f}] |"
+                      f" [{record.longitude:3.10f}] |"
+                      f" [{record_index:2d}] |"
+                      f" {record.name}")
+                continue
+
               print(f"{postal_code} |"
                     f" {row['LATITUDE']:16s} |"
                     f" {row['LONGITUDE']:16s} |"
+                    f"  {record_index:2d}  |"
                     f" {row['SEARCHVAL']}")
 
-            counter += 1
-            newLocation = Location(
-              name=row['SEARCHVAL'],
-              postal_code=postal_code,
-              latitude=r['results'][index]['LATITUDE'],
-              longitude=r['results'][index]['LONGITUDE'],
-              )
-            session.add(newLocation)
-
-            oneMapEntry = session.query(OneMapResponse).filter(
-              OneMapResponse.postal_code==postal_code,
-              OneMapResponse.total_pages==total_pages,
-              OneMapResponse.total_records==record_count,
-              OneMapResponse.response==response.text
-              ).one_or_none()
-
-            if oneMapEntry is None:
-              newResponse = OneMapResponse(
-                total_pages=total_pages,
-                page_number=current_page,
-                total_records=record_count,
+              counter += 1
+              newLocation = Location(
+                name=row['SEARCHVAL'],
                 postal_code=postal_code,
-                response=response.text
-              )
-              session.add(newResponse)
+                latitude=r['results'][index]['LATITUDE'],
+                longitude=r['results'][index]['LONGITUDE'],
+                )
+              session.add(newLocation)
 
-            # check if postal code already exist in PostalCode, if not exist insert new Postal code
-            postalCode = session.query(PostalCode).filter(PostalCode.postal_code==postal_code).one_or_none()
-            if postalCode is None:
-              newPostalCode = PostalCode(postal_code=postal_code)
-              session.add(newPostalCode)
-              newLocation.postal_code_index = newPostalCode
-              newResponse.postal_code_index = newPostalCode
-            else:
-              newLocation.postal_code_index = postalCode
-            session.commit()
-      # else:
-      #   print(f"{params['searchVal']} | {r['found']:2d} |    |")
+              oneMapEntry = session.query(OneMapResponse).filter(
+                OneMapResponse.postal_code==postal_code,
+                OneMapResponse.total_pages==total_pages,
+                OneMapResponse.total_records==record_count,
+                OneMapResponse.response==response.text
+                ).one_or_none()
+
+              if oneMapEntry is None:
+                newResponse = OneMapResponse(
+                  total_pages=total_pages,
+                  page_number=current_page,
+                  total_records=record_count,
+                  postal_code=postal_code,
+                  response=response.text
+                )
+                session.add(newResponse)
+
+              # check if postal code already exist in PostalCode, if not exist insert new Postal code
+              postalCode = session.query(PostalCode).filter(PostalCode.postal_code==postal_code).one_or_none()
+              if postalCode is None:
+                newPostalCode = PostalCode(postal_code=postal_code)
+                session.add(newPostalCode)
+                newLocation.postal_code_index = newPostalCode
+                newResponse.postal_code_index = newPostalCode
+              else:
+                newLocation.postal_code_index = postalCode
+              session.commit()
+          if current_page <= total_pages:
+            current_page += 1
+        # else:
+        #   print(f"{params['searchVal']} | {r['found']:2d} |    |")
+
+      api.sets(**params)
   # display(Markdown('---'))
   end_time = time.time()
   hh = int(end_time-start_time) // 3600
