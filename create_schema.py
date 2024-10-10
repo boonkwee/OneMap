@@ -18,3 +18,4 @@ if not os.path.exists(json_file):
   with open(json_file, 'w') as fp:
     json.dump([1, 10000], fp)
     fp.close()
+  print(f"'{json_file}' created.")
