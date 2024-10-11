@@ -9,6 +9,7 @@ from models import Location
 from models import PostalCode
 from models import OneMapResponse
 from api import Api
+from misc_tools import wait_some_seconds
 
 headers = {"Authorization": ONEMAP_KEY}
 
@@ -48,9 +49,10 @@ def main():
   for j in range(start, end):
     if fail_counter == max_failure:
       break
+    # wait_some_seconds(2, True)
     for i in range(1, 100):
       last_counter = j
-      # wait_some_seconds()   # Throttling effect
+      wait_some_seconds(2, True)   # Throttling effect
       postal_code = f"{i:02d}{j:04d}"
       api.set('searchVal', postal_code)
       # refresh the current_page and total_pages from api
