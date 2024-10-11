@@ -20,7 +20,7 @@ def load_jsonfile():
     with open(json_file, 'r') as fp:
       obj = json.load(fp)
       fp.close()
-      obj[1] = obj[1] if obj[1] > 10000 else 10000
+      obj[1] = obj[1] if obj[1] < 10000 else 10000
   except FileNotFoundError:
     obj = None
   return obj

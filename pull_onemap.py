@@ -171,5 +171,4 @@ if __name__=='__main__':
     start = last_counter
     save_jsonfile([start, end])
     print(f"Start updated to {start}")
-    input("Enter any key to continue...")
     raise
