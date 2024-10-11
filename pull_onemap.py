@@ -145,7 +145,8 @@ def main():
             current_page += 1
         # else:
         #   print(f"{params['searchVal']} | {r['found']:2d} |    |")
-
+      # Set the api object to the original state.
+      # This will prevent the pageNum from incurring unnecessary iterations
       api.sets(**params)
   # display(Markdown('---'))
   end_time = time.time()
