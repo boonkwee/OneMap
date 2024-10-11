@@ -5,6 +5,7 @@
 *.json
 __pycache__/
 OneMap/
+.vscode/
 build/
 dist/
 venv
