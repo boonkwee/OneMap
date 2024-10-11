@@ -1,4 +1,4 @@
-# Postal Code Database
+# OneMap Database
 This repo is a simple Database Python application that creates a sqlite3 db and pulls Singapore Postal code and the corresponding location name to the db.
 
 ## database.py
@@ -10,6 +10,9 @@ The format of the style is in Sqlalchemy 1.0.
 
 ## settings.py
 This file retrieves the database password, as well as access token to GMap and OneMAP API. It is designed in a way developers can fork this project and use it for themselves, but have get their own passwords and access tokens.
+
+## create_schema.py
+This file creates a empty singapore_addresses.db file with no records. Note that running this will erase any existing records in the singapore_addresses.db
 
 ## pull_onemap.py
 This file depends on the above files and initiates connection with OneMap dot gov dot sg to query for the necessary information.
