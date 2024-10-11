@@ -14,6 +14,9 @@ This file retrieves the database password, as well as access token to GMap and O
 ## create_schema.py
 This file creates a empty singapore_addresses.db file with no records. Note that running this will erase any existing records in the singapore_addresses.db
 
+## api.py
+This file defines a class to manage the API requests to OneMap dot gov dot sg. This reduces code in pull_onemap.py.
+
 ## pull_onemap.py
 This file depends on the above files and initiates connection with OneMap dot gov dot sg to query for the necessary information.
 
