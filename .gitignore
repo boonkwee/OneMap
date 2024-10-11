@@ -5,6 +5,8 @@
 *.json
 __pycache__/
 OneMap/
+build/
+dist/
 venv
 singapore_addresses.db
 settings.env
@@ -12,3 +14,4 @@ locations.xlsx
 testing.py
 requirements_notebook.txt
 requirements_wo_notebook.txt
+pull_onemap.spec
