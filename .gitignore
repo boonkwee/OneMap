@@ -15,3 +15,5 @@ testing.py
 requirements_notebook.txt
 requirements_wo_notebook.txt
 pull_onemap.spec
+pull_onemap.exe
+test.bat

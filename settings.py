@@ -13,7 +13,7 @@ NEONDB_UID = os.environ.get("neondb_uid")
 NEONDB_PWD = os.environ.get("neondb_pwd")
 GMAP = os.environ.get("gmap")
 
-json_file = os.path.splitext(__file__)[0] + '.json'
+json_file = os.path.splitext(os.path.basename(__file__))[0] + '.json'
 
 def load_jsonfile():
   try:
@@ -35,6 +35,7 @@ def save_jsonfile(obj=None):
 
 if __name__=='__main__':
   print(dotenv_path)
+  print(json_file)
   if not os.path.exists(json_file):
     print(f"'{json_file}' not found")
   start, end = load_jsonfile()

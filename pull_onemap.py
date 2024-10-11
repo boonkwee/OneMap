@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import os
 from settings import ONEMAP_KEY
 from settings import load_jsonfile, save_jsonfile, json_file
 from database import session_pool
@@ -22,11 +23,13 @@ params = {
 
 last_counter = 0
 try:
+  print(f"Reading '{json_file}'...")
   start, end = load_jsonfile()
 except TypeError:
   start = 1
   end = 10000
-  raise
+  if not os.path.exists(json_file):
+    raise
 
 def main():
   global start
@@ -168,4 +171,5 @@ if __name__=='__main__':
     start = last_counter
     save_jsonfile([start, end])
     print(f"Start updated to {start}")
+    input("Enter any key to continue...")
     raise
