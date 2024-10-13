@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import os
+from datetime import datetime
 from settings import ONEMAP_KEY
 from settings import load_jsonfile, save_jsonfile, json_file
 from database import session_pool
@@ -33,9 +34,7 @@ except TypeError:
     raise
 
 def main():
-  global start
-  global end
-  global last_counter
+  global start, end, last_counter
   print(f"XX{start:04d} to XX{end-1:04d}")
 
   # api = Api(url=url, method='GET', param=params, header=headers)
@@ -52,8 +51,11 @@ def main():
     # wait_some_seconds(2, True)
     for i in range(1, 100):
       last_counter = j
-      wait_some_seconds(2, True)   # Throttling effect
       postal_code = f"{i:02d}{j:04d}"
+      # keep status updated on screen
+      print(f"\r{datetime.now()} | {postal_code}", end='')
+      wait_some_seconds(3)   # Throttling effect
+      print('\r', end='')
       api.set('searchVal', postal_code)
       # refresh the current_page and total_pages from api
       total_pages = api.get('pageNum')
@@ -68,10 +70,11 @@ def main():
             print(f"Failed at {postal_code}")
             break
           else:
-            print(f"{postal_code} |"
-                  f" {16*'-'} |"
-                  f" {16*'-'} |"
-                  f" {'---'}")
+            print(f"{datetime.now()} |"
+              f" {postal_code} |"
+              f" {16*'-'} |"
+              f" {16*'-'} |"
+              f" {'---'}")
             continue
         try:
           r = json.loads(response.text)
@@ -89,50 +92,56 @@ def main():
 
         else:
           for index, row in enumerate(r['results']):
-            record_index = (r['pageNum']-1)*10 + index+1
+            record_index  = (r['pageNum']-1)*10 + index+1
+            latitude      = row['LATITUDE']
+            longitude     = row['LONGITUDE']
             # Create a session from the sessionmaker
             with session_pool() as session:
               # Query for the location where postal_code, page_number and name matches DB
               record = session.query(Location).filter(
-                  Location.postal_code==postal_code,
-                  Location.name==row['SEARCHVAL']).one_or_none()
+                  Location.postal_code == postal_code,
+                  Location.latitude    == latitude,
+                  Location.longitude   == longitude,
+                  Location.name        == row['SEARCHVAL']).one_or_none()
               if record:
-                print(f"{postal_code} |"
+                print(f"{datetime.now()} |"
+                      f" {postal_code} |"
                       f" [{record.latitude:1.12f}] |"
                       f" [{record.longitude:3.10f}] |"
                       f" [{record_index:2d}] |"
                       f" {record.name}")
                 continue
 
-              print(f"{postal_code} |"
-                    f" {row['LATITUDE']:16s} |"
-                    f" {row['LONGITUDE']:16s} |"
+              print(f"{datetime.now()} |"
+                    f" {postal_code} |"
+                    f" {latitude:16s} |"
+                    f" {longitude:16s} |"
                     f"  {record_index:2d}  |"
                     f" {row['SEARCHVAL']}")
 
               counter += 1
               newLocation = Location(
-                name=row['SEARCHVAL'],
-                postal_code=postal_code,
-                latitude=r['results'][index]['LATITUDE'],
-                longitude=r['results'][index]['LONGITUDE'],
+                name        = row['SEARCHVAL'],
+                postal_code = postal_code,
+                latitude    = latitude,
+                longitude   = longitude,
                 )
               session.add(newLocation)
 
               oneMapEntry = session.query(OneMapResponse).filter(
-                OneMapResponse.postal_code==postal_code,
-                OneMapResponse.total_pages==total_pages,
-                OneMapResponse.total_records==record_count,
-                OneMapResponse.response==response.text
+                OneMapResponse.postal_code  == postal_code,
+                OneMapResponse.total_pages  == total_pages,
+                OneMapResponse.total_records== record_count,
+                OneMapResponse.response     == response.text
                 ).one_or_none()
 
               if oneMapEntry is None:
                 newResponse = OneMapResponse(
-                  total_pages=total_pages,
-                  page_number=current_page,
-                  total_records=record_count,
-                  postal_code=postal_code,
-                  response=response.text
+                  total_pages   = total_pages,
+                  page_number   = current_page,
+                  total_records = record_count,
+                  postal_code   = postal_code,
+                  response      = response.text
                 )
                 session.add(newResponse)
 
@@ -172,5 +181,5 @@ if __name__=='__main__':
   except KeyboardInterrupt:
     start = last_counter
     save_jsonfile([start, end])
-    print(f"Start updated to {start}")
+    print(f"\nStart updated to {start}")
     raise

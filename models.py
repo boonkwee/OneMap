@@ -23,8 +23,6 @@ class Location(TimestampMixin, Base):
 class PostalCode(TimestampMixin, Base):
   __tablename__ = 'postal_code'
   postal_code =       Column(String, primary_key=True, index=True)
-  location_id =       Column(Integer, ForeignKey('locations.id'), nullable=True,
-                             index=True)
 
 class OneMapResponse(TimestampMixin, Base):
   __tablename__ =     'onemap_response'
