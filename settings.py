@@ -7,11 +7,11 @@ import json
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-ONEMAP_KEY = os.environ.get("onemap")
+ONEMAP_KEY  = os.environ.get("onemap")
 NEONDB_HOST = os.environ.get("neondb_host")
-NEONDB_UID = os.environ.get("neondb_uid")
-NEONDB_PWD = os.environ.get("neondb_pwd")
-GMAP = os.environ.get("gmap")
+NEONDB_UID  = os.environ.get("neondb_uid")
+NEONDB_PWD  = os.environ.get("neondb_pwd")
+GMAP        = os.environ.get("gmap")
 
 json_file = os.path.splitext(os.path.basename(__file__))[0] + '.json'
 

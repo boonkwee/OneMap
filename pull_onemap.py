@@ -103,7 +103,7 @@ def main():
                   Location.latitude    == latitude,
                   Location.longitude   == longitude,
                   Location.name        == row['SEARCHVAL']).all()
-              location = record[0] or None
+              location = False if len(record) == 0 else record[0]
 
               oneMapEntry = session.query(OneMapResponse).filter(
                 OneMapResponse.postal_code  == postal_code,
