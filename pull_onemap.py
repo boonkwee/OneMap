@@ -102,14 +102,23 @@ def main():
                   Location.postal_code == postal_code,
                   Location.latitude    == latitude,
                   Location.longitude   == longitude,
-                  Location.name        == row['SEARCHVAL']).one_or_none()
-              if record:
+                  Location.name        == row['SEARCHVAL']).all()
+              location = record[0] or None
+
+              oneMapEntry = session.query(OneMapResponse).filter(
+                OneMapResponse.postal_code  == postal_code,
+                OneMapResponse.total_pages  == total_pages,
+                OneMapResponse.total_records== record_count,
+                OneMapResponse.response     == response.text
+                ).one_or_none()
+
+              if location and oneMapEntry:
                 print(f"{datetime.now()} |"
                       f" {postal_code} |"
-                      f" [{record.latitude:1.12f}] |"
-                      f" [{record.longitude:3.10f}] |"
+                      f" [{location.latitude:1.12f}] |"
+                      f" [{location.longitude:3.10f}] |"
                       f" [{record_index:2d}] |"
-                      f" {record.name}")
+                      f" {location.name}")
                 continue
 
               print(f"{datetime.now()} |"
@@ -127,13 +136,6 @@ def main():
                 longitude   = longitude,
                 )
               session.add(newLocation)
-
-              oneMapEntry = session.query(OneMapResponse).filter(
-                OneMapResponse.postal_code  == postal_code,
-                OneMapResponse.total_pages  == total_pages,
-                OneMapResponse.total_records== record_count,
-                OneMapResponse.response     == response.text
-                ).one_or_none()
 
               if oneMapEntry is None:
                 newResponse = OneMapResponse(
