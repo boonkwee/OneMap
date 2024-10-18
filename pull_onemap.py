@@ -117,15 +117,15 @@ def main():
                       f" {postal_code} |"
                       f" [{location.latitude:1.12f}] |"
                       f" [{location.longitude:3.10f}] |"
-                      f" [{record_index:2d}] |"
+                      f" [{record_index:2d}/{record_count:2d}] |"
                       f" {location.name}")
                 continue
 
               print(f"{datetime.now()} |"
                     f" {postal_code} |"
-                    f" {latitude:16s} |"
-                    f" {longitude:16s} |"
-                    f"  {record_index:2d}  |"
+                    f"  {latitude:14s}  |"
+                    f"  {longitude:14s}  |"
+                    f"  {record_index:2d}/{record_count:2d}  |"
                     f" {row['SEARCHVAL']}")
 
               counter += 1
