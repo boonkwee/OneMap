@@ -123,8 +123,8 @@ def main():
 
               print(f"{datetime.now()} |"
                     f" {postal_code} |"
-                    f"  {latitude:14s}  |"
-                    f"  {longitude:14s}  |"
+                    f"  {latitude[:14]:14s}  |"
+                    f"  {longitude[:14]:14s}  |"
                     f"  {record_index:2d}/{record_count:2d}  |"
                     f" {row['SEARCHVAL']}")
 
