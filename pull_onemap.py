@@ -23,6 +23,7 @@ params = {
     'pageNum'       : 1
 }
 
+limited_display = lambda s : s if len(s) < 40 else s[:37]+'...'
 last_counter = 0
 try:
   print(f"Reading '{json_file}'...")
@@ -118,7 +119,7 @@ def main():
                       f" [{location.latitude:1.12f}] |"
                       f" [{location.longitude:3.10f}] |"
                       f" [{record_index:2d}/{record_count:2d}] |"
-                      f" {location.name}")
+                      f" {limited_display(location.name)}")
                 continue
 
               print(f"{datetime.now()} |"
@@ -126,7 +127,7 @@ def main():
                     f"  {latitude[:14]:14s}  |"
                     f"  {longitude[:14]:14s}  |"
                     f"  {record_index:2d}/{record_count:2d}  |"
-                    f" {row['SEARCHVAL']}")
+                    f" {limited_display(row['SEARCHVAL'])}")
 
               counter += 1
               newLocation = Location(
