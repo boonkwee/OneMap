@@ -80,7 +80,15 @@ def main():
         try:
           r = json.loads(response.text)
         except json.JSONDecodeError as e:
-          print(f"{str(e)}: [{response.text}]")
+          with open('onemap_error.log', 'a') as fp:
+            fp.write(f"{str(e)}\n{response.text}\n\n")
+            fp.close()
+          # print(f"{str(e): '{postal_code}'}")
+          print(f"{datetime.now()} |"
+            f" {postal_code} |"
+            f" {16*'-'} |"
+            f" {16*'-'} |"
+            f" {str(e)}")
           continue
         r = json.loads(response.text)
         current_page = r['pageNum']
