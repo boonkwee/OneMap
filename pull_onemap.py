@@ -88,6 +88,7 @@ def main():
             f" {postal_code} |"
             f" {16*'-'} |"
             f" {16*'-'} |"
+            f"  {0:2d}/{0:2d}  |"
             f" {str(e)}")
           continue
         r = json.loads(response.text)
