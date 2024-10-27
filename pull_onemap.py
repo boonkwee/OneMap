@@ -81,7 +81,7 @@ def main():
           r = json.loads(response.text)
         except json.JSONDecodeError as e:
           with open('onemap_error.log', 'a') as fp:
-            fp.write(f"{str(e)}\n{response.text}\n\n")
+            fp.write(f"{datetime.now()}: {str(e)}\n{response.text}\n\n")
             fp.close()
           # print(f"{str(e): '{postal_code}'}")
           print(f"{datetime.now()} |"
