@@ -191,7 +191,8 @@ if __name__=='__main__':
   try:
     main()
   except KeyboardInterrupt:
+    raise
+  finally:
     start = last_counter
     save_jsonfile([start, end])
     print(f"\nStart updated to {start}")
-    raise
