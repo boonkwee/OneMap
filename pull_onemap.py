@@ -196,7 +196,7 @@ if __name__=='__main__':
   except KeyboardInterrupt:
     raise
   finally:
-    if _DEBUG:
+    if not _DEBUG:
       start = last_counter
       save_jsonfile([start, end])
       print(f"\nStart updated to {start}")
