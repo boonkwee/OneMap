@@ -58,6 +58,7 @@ def main():
       wait_some_seconds(3)   # Throttling effect
       print('\r', end='')
       api.set('searchVal', postal_code)
+
       # refresh the current_page and total_pages from api
       total_pages = api.get('pageNum')
       current_page = api.get('pageNum')
@@ -174,6 +175,7 @@ def main():
       # Set the api object to the original state.
       # This will prevent the pageNum from incurring unnecessary iterations
       api.sets(**params)
+      api.set('pageNum', 1)
   # display(Markdown('---'))
   end_time = time.time()
   hh = int(end_time-start_time) // 3600
