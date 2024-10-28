@@ -12,6 +12,7 @@ from models import OneMapResponse
 from api import Api
 from misc_tools import wait_some_seconds
 
+_DEBUG = False
 headers = {"Authorization": ONEMAP_KEY}
 
 url = "https://www.onemap.gov.sg/api/common/elastic/search"
@@ -195,6 +196,7 @@ if __name__=='__main__':
   except KeyboardInterrupt:
     raise
   finally:
-    start = last_counter
-    save_jsonfile([start, end])
-    print(f"\nStart updated to {start}")
+    if _DEBUG:
+      start = last_counter
+      save_jsonfile([start, end])
+      print(f"\nStart updated to {start}")
