@@ -55,7 +55,7 @@ def main():
       postal_code = f"{i:02d}{j:04d}"
       # keep status updated on screen
       print(f"\r{datetime.now()} | {postal_code}", end='')
-      wait_some_seconds(3)   # Throttling effect
+      # wait_some_seconds(3)   # Throttling effect
       print('\r', end='')
       api.set('searchVal', postal_code)
       # refresh the current_page and total_pages from api
