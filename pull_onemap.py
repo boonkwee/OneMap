@@ -12,6 +12,7 @@ from models import OneMapResponse
 from api import Api
 from misc_tools import wait_some_seconds
 
+_DEBUG = False
 headers = {"Authorization": ONEMAP_KEY}
 
 url = "https://www.onemap.gov.sg/api/common/elastic/search"
@@ -58,6 +59,7 @@ def main():
       # wait_some_seconds(3)   # Throttling effect
       print('\r', end='')
       api.set('searchVal', postal_code)
+
       # refresh the current_page and total_pages from api
       total_pages = api.get('pageNum')
       current_page = api.get('pageNum')
@@ -81,7 +83,7 @@ def main():
           r = json.loads(response.text)
         except json.JSONDecodeError as e:
           with open('onemap_error.log', 'a') as fp:
-            fp.write(f"{str(e)}\n{response.text}\n\n")
+            fp.write(f"{datetime.now()}: {str(e)}\n{response.text}\n\n")
             fp.close()
           # print(f"{str(e): '{postal_code}'}")
           print(f"{datetime.now()} |"
@@ -174,6 +176,7 @@ def main():
       # Set the api object to the original state.
       # This will prevent the pageNum from incurring unnecessary iterations
       api.sets(**params)
+      api.set('pageNum', 1)
   # display(Markdown('---'))
   end_time = time.time()
   hh = int(end_time-start_time) // 3600
@@ -191,7 +194,9 @@ if __name__=='__main__':
   try:
     main()
   except KeyboardInterrupt:
-    start = last_counter
-    save_jsonfile([start, end])
-    print(f"\nStart updated to {start}")
     raise
+  finally:
+    if not _DEBUG:
+      start = last_counter
+      save_jsonfile([start, end])
+      print(f"\nStart updated to {start}")
