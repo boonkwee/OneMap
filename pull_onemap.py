@@ -25,7 +25,10 @@ else:
 
 logging.basicConfig(level=level,
                     format="%(asctime)s %(levelname)s %(message)s",
-                    datefmt="%Y-%m-%d %H:%M:%S")
+                    datefmt="%Y-%m-%d %H:%M:%S",
+                    filename="pull_onemap.log",
+                    )
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 if not os.path.exists('singapore_addresses.db'):
   import create_schema
