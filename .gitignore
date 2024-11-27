@@ -10,6 +10,7 @@ build/
 dist/
 venv
 singapore_addresses.db
+singapore_addresses_old.db
 settings.env
 locations.xlsx
 testing.py

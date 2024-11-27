@@ -2,8 +2,6 @@ import requests
 import json
 import time
 import os
-import asyncio
-import sys
 from datetime import datetime
 from settings import ONEMAP_KEY
 from settings import load_jsonfile, save_jsonfile, json_file
@@ -11,26 +9,10 @@ from database import session_pool
 from models import Location
 from models import PostalCode
 from models import OneMapResponse
-from api_async import Api
-# from api import Api
-import logging
+from api import Api
 from misc_tools import wait_some_seconds
 
 _DEBUG = False
-
-if _DEBUG:
-  level=logging.DEBUG
-else:
-  level=logging.INFO
-
-logging.basicConfig(level=level,
-                    format="%(asctime)s %(levelname)s %(message)s",
-                    datefmt="%Y-%m-%d %H:%M:%S")
-
-if not os.path.exists('singapore_addresses.db'):
-  import create_schema
-  logging.info("Creating schema...")
-
 headers = {"Authorization": ONEMAP_KEY}
 
 url = "https://www.onemap.gov.sg/api/common/elastic/search"
@@ -42,11 +24,10 @@ params = {
     'pageNum'       : 1
 }
 
-# If the location name is very long, this lambda will limit the location name to 40 chars
 limited_display = lambda s : s if len(s) < 40 else s[:37]+'...'
 last_counter = 0
 try:
-  logging.info(f"Reading '{json_file}'...")
+  print(f"Reading '{json_file}'...")
   start, end = load_jsonfile()
 except TypeError:
   start = 1
@@ -54,10 +35,9 @@ except TypeError:
   if not os.path.exists(json_file):
     raise
 
-
-async def main():
+def main():
   global start, end, last_counter
-  logging.info(f"XX{start:04d} to XX{end-1:04d}")
+  print(f"XX{start:04d} to XX{end-1:04d}")
 
   # api = Api(url=url, method='GET', param=params, header=headers)
   api = Api(url=url, method='GET', param=params)
@@ -86,32 +66,34 @@ async def main():
       while current_page <= total_pages:
         api.set('pageNum', current_page)
         try:
-          response = await api.call()
+          response = api.call()
         except requests.exceptions.ConnectionError:
           fail_counter += 1
           if fail_counter == max_failure:
-            logging.info(f"Failed at {postal_code}")
+            print(f"Failed at {postal_code}")
             break
           else:
-            logging.info(f" {postal_code} |"
+            print(f"{datetime.now()} |"
+              f" {postal_code} |"
               f" {16*'-'} |"
               f" {16*'-'} |"
               f" {'---'}")
             continue
         try:
-          r = json.loads(response)
+          r = json.loads(response.text)
         except json.JSONDecodeError as e:
           with open('onemap_error.log', 'a') as fp:
             fp.write(f"{datetime.now()}: {str(e)}\n{response.text}\n\n")
             fp.close()
-          # logging.info(f"{str(e): '{postal_code}'}")
-          logging.info(f" {postal_code} |"
+          # print(f"{str(e): '{postal_code}'}")
+          print(f"{datetime.now()} |"
+            f" {postal_code} |"
             f" {16*'-'} |"
             f" {16*'-'} |"
             f"  {0:2d}/{0:2d}  |"
             f" {str(e)}")
           continue
-        r = json.loads(response)
+        r = json.loads(response.text)
         current_page = r['pageNum']
         total_pages =  r['totalNumPages']
         record_count = r['found']
@@ -139,18 +121,20 @@ async def main():
                 OneMapResponse.postal_code  == postal_code,
                 OneMapResponse.total_pages  == total_pages,
                 OneMapResponse.total_records== record_count,
-                OneMapResponse.response     == response
+                OneMapResponse.response     == response.text
                 ).one_or_none()
 
               if location and oneMapEntry:
-                logging.info(f" {postal_code} |"
+                print(f"{datetime.now()} |"
+                      f" {postal_code} |"
                       f" [{location.latitude:1.12f}] |"
                       f" [{location.longitude:3.10f}] |"
                       f" [{record_index:2d}/{record_count:2d}] |"
                       f" {limited_display(location.name)}")
                 continue
 
-              logging.info(f" {postal_code} |"
+              print(f"{datetime.now()} |"
+                    f" {postal_code} |"
                     f"  {latitude[:14]:14s}  |"
                     f"  {longitude[:14]:14s}  |"
                     f"  {record_index:2d}/{record_count:2d}  |"
@@ -171,7 +155,7 @@ async def main():
                   page_number   = current_page,
                   total_records = record_count,
                   postal_code   = postal_code,
-                  response      = response
+                  response      = response.text
                 )
                 session.add(newResponse)
 
@@ -188,7 +172,7 @@ async def main():
           if current_page <= total_pages:
             current_page += 1
         # else:
-        #   logging.info(f"{params['searchVal']} | {r['found']:2d} |    |")
+        #   print(f"{params['searchVal']} | {r['found']:2d} |    |")
       # Set the api object to the original state.
       # This will prevent the pageNum from incurring unnecessary iterations
       api.sets(**params)
@@ -201,19 +185,18 @@ async def main():
   record_insertion_speed = counter / (end_time-start_time)
 
   print(f"{counter} records added. ", end='')
-  logging.info(f"Duration: {hh:02d}:{mm:02d}:{ss:02d}. Rate: {record_insertion_speed:.3f} records per sec.")
+  print(f"Duration: {hh:02d}:{mm:02d}:{ss:02d}. Rate: {record_insertion_speed:.3f} records per sec.")
   if fail_counter == max_failure:
     raise KeyboardInterrupt
 
 
 if __name__=='__main__':
   try:
-    asyncio.run(main())
-    # main()
+    main()
   except KeyboardInterrupt:
     raise
   finally:
     if not _DEBUG:
       start = last_counter
       save_jsonfile([start, end])
-      logging.info(f"\nStart updated to {start}")
+      print(f"\nStart updated to {start}")
