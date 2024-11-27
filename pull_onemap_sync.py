@@ -80,10 +80,10 @@ def main():
               f" {'---'}")
             continue
         try:
-          r = json.loads(response.text)
+          r = json.loads(response)
         except json.JSONDecodeError as e:
           with open('onemap_error.log', 'a') as fp:
-            fp.write(f"{datetime.now()}: {str(e)}\n{response.text}\n\n")
+            fp.write(f"{datetime.now()}: {str(e)}\n{response}\n\n")
             fp.close()
           # print(f"{str(e): '{postal_code}'}")
           print(f"{datetime.now()} |"
@@ -93,7 +93,7 @@ def main():
             f"  {0:2d}/{0:2d}  |"
             f" {str(e)}")
           continue
-        r = json.loads(response.text)
+        r = json.loads(response)
         current_page = r['pageNum']
         total_pages =  r['totalNumPages']
         record_count = r['found']
@@ -121,7 +121,7 @@ def main():
                 OneMapResponse.postal_code  == postal_code,
                 OneMapResponse.total_pages  == total_pages,
                 OneMapResponse.total_records== record_count,
-                OneMapResponse.response     == response.text
+                OneMapResponse.response     == response
                 ).one_or_none()
 
               if location and oneMapEntry:
@@ -155,7 +155,7 @@ def main():
                   page_number   = current_page,
                   total_records = record_count,
                   postal_code   = postal_code,
-                  response      = response.text
+                  response      = response
                 )
                 session.add(newResponse)
 

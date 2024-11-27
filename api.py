@@ -14,7 +14,7 @@ class Api:
     response = requests.request(self.method, self.url, params=self.params, headers=self.header)
     if _DEBUG:
       print (f"Called {self.url[:10]}:{self.params['searchVal']} - ")
-    return response
+    return response.text
 
   def set(self, keyword:str='', value:str=''):
     if keyword in self.params:
