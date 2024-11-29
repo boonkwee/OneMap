@@ -11,8 +11,32 @@ from models import PostalCode
 from models import OneMapResponse
 from api import Api
 from misc_tools import wait_some_seconds
+import logging
+import sys
 
 _DEBUG = False
+if _DEBUG:
+  level=logging.DEBUG
+else:
+  level=logging.INFO
+
+logFormatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+rootLogger = logging.getLogger()
+
+# fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
+fileHandler = logging.FileHandler("pull_onemap.log")
+fileHandler.setFormatter(logFormatter)
+rootLogger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
+rootLogger.setLevel(level)
+
+if not os.path.exists('singapore_addresses.db'):
+  import create_schema
+  logging.info("Creating schema...")
+
 headers = {"Authorization": ONEMAP_KEY}
 
 url = "https://www.onemap.gov.sg/api/common/elastic/search"
@@ -27,7 +51,7 @@ params = {
 limited_display = lambda s : s if len(s) < 40 else s[:37]+'...'
 last_counter = 0
 try:
-  print(f"Reading '{json_file}'...")
+  logging.info(f"Reading '{json_file}'...")
   start, end = load_jsonfile()
 except TypeError:
   start = 1
@@ -37,7 +61,7 @@ except TypeError:
 
 def main():
   global start, end, last_counter
-  print(f"XX{start:04d} to XX{end-1:04d}")
+  logging.info(f"XX{start:04d} to XX{end-1:04d}")
 
   # api = Api(url=url, method='GET', param=params, header=headers)
   api = Api(url=url, method='GET', param=params)
@@ -70,11 +94,10 @@ def main():
         except requests.exceptions.ConnectionError:
           fail_counter += 1
           if fail_counter == max_failure:
-            print(f"Failed at {postal_code}")
+            logging.info(f"Failed at {postal_code}")
             break
           else:
-            print(f"{datetime.now()} |"
-              f" {postal_code} |"
+            logging.info(f" {postal_code} |"
               f" {16*'-'} |"
               f" {16*'-'} |"
               f" {'---'}")
@@ -85,9 +108,8 @@ def main():
           with open('onemap_error.log', 'a') as fp:
             fp.write(f"{datetime.now()}: {str(e)}\n{response}\n\n")
             fp.close()
-          # print(f"{str(e): '{postal_code}'}")
-          print(f"{datetime.now()} |"
-            f" {postal_code} |"
+          # logging.info(f"{str(e): '{postal_code}'}")
+          logging.info(f" {postal_code} |"
             f" {16*'-'} |"
             f" {16*'-'} |"
             f"  {0:2d}/{0:2d}  |"
@@ -125,16 +147,14 @@ def main():
                 ).one_or_none()
 
               if location and oneMapEntry:
-                print(f"{datetime.now()} |"
-                      f" {postal_code} |"
+                logging.info(f" {postal_code} |"
                       f" [{location.latitude:1.12f}] |"
                       f" [{location.longitude:3.10f}] |"
                       f" [{record_index:2d}/{record_count:2d}] |"
                       f" {limited_display(location.name)}")
                 continue
 
-              print(f"{datetime.now()} |"
-                    f" {postal_code} |"
+              logging.info(f" {postal_code} |"
                     f"  {latitude[:14]:14s}  |"
                     f"  {longitude[:14]:14s}  |"
                     f"  {record_index:2d}/{record_count:2d}  |"
@@ -172,7 +192,7 @@ def main():
           if current_page <= total_pages:
             current_page += 1
         # else:
-        #   print(f"{params['searchVal']} | {r['found']:2d} |    |")
+        #   logging.info(f"{params['searchVal']} | {r['found']:2d} |    |")
       # Set the api object to the original state.
       # This will prevent the pageNum from incurring unnecessary iterations
       api.sets(**params)
@@ -184,8 +204,8 @@ def main():
   ss = int(end_time-start_time) % 60
   record_insertion_speed = counter / (end_time-start_time)
 
-  print(f"{counter} records added. ", end='')
-  print(f"Duration: {hh:02d}:{mm:02d}:{ss:02d}. Rate: {record_insertion_speed:.3f} records per sec.")
+  logging.info(f"{counter} records added.")
+  logging.info(f"Duration: {hh:02d}:{mm:02d}:{ss:02d}. Rate: {record_insertion_speed:.3f} records per sec.")
   if fail_counter == max_failure:
     raise KeyboardInterrupt
 
@@ -199,4 +219,4 @@ if __name__=='__main__':
     if not _DEBUG:
       start = last_counter
       save_jsonfile([start, end])
-      print(f"\nStart updated to {start}")
+      logging.info(f"\nStart updated to {start}")

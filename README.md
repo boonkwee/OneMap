@@ -19,6 +19,15 @@ This file defines a class to manage the API requests to OneMap dot gov dot sg. T
 
 ## pull_onemap.py
 This file depends on the above files and initiates connection with OneMap dot gov dot sg to query for the necessary information.
+Runs in asynchronous mode.
+
+## api_async.py
+This file defines a class to manage the API requests to OneMap dot gov dot sg. This reduces code in pull_onemap.py.
+Runs in asynchronous mode.
+
+## pull_onemap_sync.py
+Initiates connection with OneMap dot gov dot sg to query for the necessary information.
+Runs in synchronous mode.
 
 ## show_schema.py
 This file uses the first three file to establish a connection and displays the table schema. If any of the components does not work. This file will fail.

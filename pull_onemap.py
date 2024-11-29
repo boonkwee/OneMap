@@ -23,12 +23,20 @@ if _DEBUG:
 else:
   level=logging.INFO
 
-logging.basicConfig(level=level,
-                    format="%(asctime)s %(levelname)s %(message)s",
-                    datefmt="%Y-%m-%d %H:%M:%S",
-                    filename="pull_onemap.log",
-                    )
-logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+import logging
+# logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+logFormatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+rootLogger = logging.getLogger()
+
+# fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
+fileHandler = logging.FileHandler("pull_onemap.log")
+fileHandler.setFormatter(logFormatter)
+rootLogger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
+rootLogger.setLevel(level)
 
 if not os.path.exists('singapore_addresses.db'):
   import create_schema
@@ -203,7 +211,7 @@ async def main():
   ss = int(end_time-start_time) % 60
   record_insertion_speed = counter / (end_time-start_time)
 
-  print(f"{counter} records added. ", end='')
+  logging.info(f"{counter} records added. ")
   logging.info(f"Duration: {hh:02d}:{mm:02d}:{ss:02d}. Rate: {record_insertion_speed:.3f} records per sec.")
   if fail_counter == max_failure:
     raise KeyboardInterrupt
